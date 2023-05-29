@@ -1,39 +1,33 @@
-var AWS = require('aws-sdk');
-const dynamodb = new AWS.DynamoDB.DocumentClient();
+import json
+import boto3
 
-exports.handler = async (event) => {
-    
-    let responseBody = ""
-    let statusCode = 0
-    
-    let {id, price} = JSON.parse(event.body);
-    
-    const params = {
-      TableName : 'Items',
-      /* Item properties will depend on your application concerns */
-      Item: {
-         id: id,
-         price: price
-      }
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('Items')
+
+def lambda_handler(event, context):
+    response = {
+        'statusCode': 0,
+        'body': ""
     }
-    
-    try {
-        
-        await dynamodb.put(params).promise();
-        statusCode = 200;
-        responseBody = JSON.stringify('Item inserido com sucesso!');
-        
-    } catch (err) {
-          
-        statusCode = 200;
-        responseBody = JSON.stringify(err);
-        
-    }
-      
-    const response = {
-        statusCode: statusCode,
-        body: responseBody,
-    };
-    
-    return response;
-};
+
+    try:
+        body = json.loads(event['body'])
+        id = body['id']
+        price = body['price']
+
+        item = {
+            'id': id,
+            'price': price
+        }
+
+        table.put_item(Item=item)
+
+        response['statusCode'] = 200
+        response['body'] = json.dumps('Item inserted successfully!')
+
+    except Exception as e:
+        response['statusCode'] = 500
+        response['body'] = json.dumps(str(e))
+
+    return response
+"""Note: This code snippet is a Python implementation of a Lambda function that interacts with an AWS DynamoDB table. It receives an event, extracts the id and price values from the request body, and inserts a new item into the Items table using the Boto3 library. The response includes the status code and a response body indicating the success or error message."""
